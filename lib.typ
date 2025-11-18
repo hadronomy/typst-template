@@ -1,71 +1,63 @@
 #import "@preview/chic-hdr:0.5.0": *
+#import "@preview/scienceicons:0.1.0": orcid-icon
 
 #let conf(
   title: none,
   affiliations: (),
   authors: (),
+  authornote: none,
+  show-email-section: false,
   date: none,
   accent: none,
   abstract: lorem(100),
+  spacing: 0.55em,
+  first-line-indent: 1.8em,
   doc,
 ) = {
   // ---------------------------------------------------------------------------
   // Global layout & typography
   // ---------------------------------------------------------------------------
-  // Document metadata (used for accessibility & title element)
-  let names = authors.map(a => a.name)
-  let author-string = if authors.len() == 2 {
-    names.join(" y ")
-  } else {
-    names.join(", ", last: ", y ")
-  }
 
   set document(
     title: title,
+    description: abstract,
     author: if authors != none { authors.map(a => str(a.name)) } else { () },
   )
 
-  // Page geometry
   set page(
     margin: 1in,
     paper: "a4",
   )
 
   let accent_color = {
-    if type(accent) == "string" {
+    if type(accent) == str {
       rgb(accent)
-    } else if type(accent) == "color" {
+    } else if type(accent) == color {
       accent
     } else {
       rgb("#DC143C")
     }
   }
 
-  // Paragraph & justification (uses 0.14 character-level justification)
   set par(
     leading: 0.55em,
-    first-line-indent: 1.8em,
+    first-line-indent: first-line-indent,
     justify: true,
+    spacing: spacing,
   )
 
-  // Base fonts
   set text(
     font: "Libertinus Serif",
     size: 10pt,
   )
 
-  // Use mono font in raw code
   show raw: set text(font: "NewComputerModern Mono")
-
-  // Vertical spacing between paragraphs and headings
-  set par(spacing: 0.55em)
   show heading: set block(above: 2em, below: 1.4em)
 
   // ---------------------------------------------------------------------------
   // Header / footer via chic-hdr
   // ---------------------------------------------------------------------------
 
-  // Chic header with uppercase short title
   show: chic.with(
     skip: 1,
     chic-header(
@@ -84,20 +76,16 @@
   let emails = authors.map(a => link("mailto:" + a.email)[#a.email])
   let emails-string = emails.join(", ")
 
-  // Footnotes
   show footnote: it => text(blue, it)
 
-  // Citations / bibliography
   set cite(style: "chicago-author-date")
   set bibliography(style: "ieee", title: "References")
 
-  // Tables
   set table(
     stroke: (_, y) => if y > 0 { (top: 0.8pt) } else { none },
   )
   show table.cell.where(y: 0): set text(weight: "bold")
 
-  // Figures
   show figure.caption: it => [
     *#it.supplement #it.counter.display(it.numbering)*: #it.body
   ]
@@ -123,6 +111,17 @@
       it.caption
     }
     v(1em)
+  }
+
+  show list: it => {
+    // Space between list items
+    set par(leading: 0.48em)
+    // Space around whole list
+    set block(
+      spacing: spacing * 1.2,
+      inset: (left: first-line-indent, right: first-line-indent),
+    )
+    it
   }
 
   // ---------------------------------------------------------------------------
@@ -172,7 +171,10 @@
 
   // Collect author metadata once
   let corresponding_authors = if authors != none {
-    authors.filter(a => (a.keys().contains("corresponding") and a.at("corresponding") == true))
+    authors.filter(a => (
+      // If key not present → treat as true
+      not a.keys().contains("corresponding") or a.at("corresponding") == true
+    ))
   } else { () }
 
   let equal_authors = if authors != none {
@@ -181,7 +183,6 @@
     ))
   } else { () }
 
-  // Find first author indices for each footnote type
   let first_corresponding_idx = if corresponding_authors.len() > 0 {
     authors.position(a => corresponding_authors.contains(a))
   } else { none }
@@ -190,50 +191,85 @@
     authors.position(a => equal_authors.contains(a))
   } else { none }
 
+  // Helper: render affiliation ids as superscripts (e.g., [1,2] -> ¹,²)
+  let affiliation_superscript(ids) = {
+    if ids == none {
+      ""
+    } else if type(ids) == "array" {
+      super(ids.join(", "))
+    } else {
+      super(ids)
+    }
+  }
+
+  // Author display using affiliations.id and authors.affiliation: [id]
   let author_display = if authors != none {
-    authors
+    let result = authors
       .enumerate()
       .map(((idx, a)) => {
-        // Start with the author name
-        let parts = (a.name,)
+        let parts = ()
 
-        // If more than one author, append superscripted affiliation
-        if authors.len() > 1 and a.keys().contains("affiliation") {
-          parts.push(super(a.affiliation))
+        // Name wrapped in an unstyled mailto link
+        if a.keys().contains("email") {
+          parts.push(
+            link("mailto:" + a.email)[#a.name],
+          )
+        } else {
+          parts.push(a.name)
         }
 
-        // Corresponding author marks (if used in your data)
+        // Superscript affiliation ids if present
+        if a.keys().contains("affiliation") {
+          parts.push(affiliation_superscript(a.affiliation))
+        }
+
+        // Corresponding author mark / footnote
         if corresponding_authors.contains(a) and idx == first_corresponding_idx {
           parts.push(footnote(numbering: _ => "*")[
-            #corresponding-text
-            #corresponding_authors
-            .map(b => [#b.name, " <", #b.email, ">"])
-            .join(", ", last: " & ")
+            Autor(a/es) de correspondencia:
+            #h(4pt)
+            #(
+              corresponding_authors.map(b => [#b.name "#b.email"]).join(", ", last: " y ")
+            )
             .
           ])
         } else if corresponding_authors.contains(a) {
           parts.push(super("*"))
         }
 
-        // Equal contributor marks (if used in your data)
+        // Equal-contributor mark / footnote
         if equal_authors.len() > 1 and equal_authors.contains(a) and idx == first_equal_idx {
           parts.push(footnote(numbering: _ => "†")[
-            #equal_authors.map(b => b.name).join(", ", last: " & ")
-            contributed equally to this work.
+            #equal_authors.map(b => b.name).join(", ", last: " y ")
+            contribuyeron de manera equivalente a este trabajo.
           ])
         } else if equal_authors.len() > 1 and equal_authors.contains(a) {
           parts.push(super("†"))
         }
 
-        // ORCID icon/link (optional)
+        // Optional ORCID
         if a.keys().contains("orcid") {
-          parts.push(link(a.orcid, fa-orcid(fill: rgb("a6ce39"), size: 0.8em)))
+          parts.push(
+            link(a.orcid, orcid-icon(color: rgb("a6ce39"), height: 0.8em)),
+          )
         }
 
         parts.join()
       })
-      .join(", ", last: " & ")
+      .join(", ", last: " y ")
+
+    if authornote != none {
+      result + footnote_non_numbered(authornote)
+    } else {
+      result
+    }
   } else { none }
+
+  if author_display != none {
+    hide(author_display)
+    counter(footnote).update(n => if n > 0 { n - 1 } else { 0 })
+    v(-2.4em)
+  }
 
   set align(center)
 
@@ -257,21 +293,23 @@
           #for affiliation in affiliations {
             v(1em)
             text(size: 9pt)[
-              #super(size: 0.8em)[1]
+              #super(size: 0.8em)[#affiliation.id]
               #text(size: 8pt, style: "italic")[
                 #affiliation.full
               ]
             ]
           }
 
-          #v(1em)
-          #text(size: 9pt)[
-            E-mail:
-            #show link: it => text(fill: black, it)
-            #text(size: 8pt, style: "italic", fill: black)[#emails-string]
-          ]
-          #v(1em)
+          #if show-email-section == true {
+            v(1em)
+            text(size: 9pt)[
+              E-mail:
+              #show link: it => text(fill: black, it)
+              #text(size: 8pt, style: "italic", fill: black)[#emails-string]
+            ]
+          }
 
+          #v(1em)
 
           #{
             if date != none {
@@ -280,7 +318,7 @@
                 stroke: none,
                 gutter: 0pt,
                 align: (right, left),
-                [#text(size: 11pt, "Publicado:")],
+                [#text(size: 11pt, "Entregado:")],
                 [#text(
                     size: 11pt,
                     fill: accent_color,
@@ -289,7 +327,7 @@
                   )
                 ],
 
-                text(size: 11pt, "Ultima Actualización:"),
+                text(size: 11pt, "Última Actualización:"),
                 text(
                   size: 11pt,
                   fill: accent_color,
@@ -300,7 +338,7 @@
             } else {
               align(
                 center,
-                text(size: 11pt)[Ultima Actualización:#h(5pt)]
+                text(size: 11pt)[Última Actualización:#h(5pt)]
                   + text(
                     size: 11pt,
                     weight: "semibold",
@@ -317,23 +355,24 @@
         ]
       ]
 
-      // ---------------------------------------------------------------------------
-      // Abstract (kept ragged, uses metadata abstract)
-      // ---------------------------------------------------------------------------
-
       #v(2em)
 
-      #par(justify: true)[
-        #text(size: 10pt, weight: "semibold")[
-          Resumen
-        ]
-        #text(size: 10pt)[
-          #abstract
+      #[
+        #show heading.where(level: 1): it => block(below: 0pt) + box(strong(it.body))
+
+        #block()[
+          #heading()[
+            Resumen
+          ]
+          #text(size: 10pt)[
+            #abstract
+          ]
         ]
       ]
+
+      #counter(heading).update(0)
     ]
   })
-
 
   v(2em)
 
@@ -345,7 +384,7 @@
   set align(left)
 
   [
-    #show link: it => text(blue, it)
+    #show link: it => text(fill: blue)[#it.body]
     #doc
   ]
 }
