@@ -798,31 +798,57 @@ Contamos con las siguientes columnas:
 #defitem([`imdbId`], [Identificador de película utilizado por imdb.com.])
 #defitem([`tmdbId`], [Identificador de película utilizado por themoviedb.org.])
 
-/ #strong(`genres`): Géneros de la película, separados por el carácter `|`. Incluye exclusivamente:
+/ #strong(`genres`): Géneros de la película, separados por el carácter `|`.
 
-#columns(4, gutter: 1em)[
-  - Action
-  - Adventure
-  - Animation
-  - Children's
-  - Comedy
-  - Crime
-  - Documentary
-  - Drama
-  - Fantasy
-  - Film-Noir
-  - Horror
-  - Musical
-  - Mystery
-  - Romance
-  - Sci-Fi
-  - Thriller
-  - War
-  - Western
-  - (no genres listed)
-]
+#linebreak()
+En las gráficas a continuación se puede observar las diferencias entre los dos datasets *MovieLens*.
+// Incluye exclusivamente:
+
+// #columns(4, gutter: 1em)[
+//   - Action
+//   - Adventure
+//   - Animation
+//   - Children's
+//   - Comedy
+//   - Crime
+//   - Documentary
+//   - Drama
+//   - Fantasy
+//   - Film-Noir
+//   - Horror
+//   - Musical
+//   - Mystery
+//   - Romance
+//   - Sci-Fi
+//   - Thriller
+//   - War
+//   - Western
+//   - (no genres listed)
+// ]
 
 #v(1em)
+
+
+#grid(
+  align: bottom,
+  columns: (1fr, 1fr),
+  gutter: 1em,
+  figure(
+    caption: "Genre Dominance Per Dataset",
+    image("data/chart_heatmap.svg"),
+  ),
+  figure(
+    caption: "Size Per Dataset",
+    image("data/chart_stats.svg"),
+  ),
+)
+
+#figure(
+  caption: "Release Year Distribution",
+  image("data/chart_ridgeline.svg", width: 70%),
+)
+
+
 
 = Evaluación del sistema de recomendación
 
@@ -916,6 +942,8 @@ Podemos concluir que: #linebreak()#linebreak()
 
   *SVD destaca como el mejor balance entre rendimiento y coste computacional.* SVD++, aunque más preciso, es más costoso computacionalmente.
 ]
+
+#pagebreak()
 
 = Propuesta del módulo recomendador colaborativo
 
