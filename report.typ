@@ -1,4 +1,5 @@
-#import "lib.typ": conf
+#import "lib/template.typ": conf
+#import "lib/helpers.typ": *
 
 #set text(lang: "es")
 
@@ -736,6 +737,9 @@ El conjunto de datos se estructura en tres ficheros csv distintos: ratings.csv, 
 
 Para iniciar con la creación del sistema de recomendación, partiremos de los dataset *MovieLens 100K* y *MovieLens 32M*. Estos conjuntos de datos serán tratados con los #link(<algoritmos>)[Algoritmos de Surprise Explicados]. Por otra parte, la calidad de los resultados obtenidos será verificada a través de las #link(<metricas>)[métricas propuestas anteriormente].
 
+#let raw-100k = csv("data/100k.csv")
+#let raw-32m = csv("data/32m.csv")
+
 #page(flipped: true)[
 
   == Comparación de algoritmos
@@ -743,52 +747,83 @@ Para iniciar con la creación del sistema de recomendación, partiremos de los d
   #show table.cell.where(y: 1): set text(weight: "bold")
   #show table.cell.where(x: 0): set text(weight: "bold")
 
-  #figure(
+  #comparison-table(
+    csv-100k: raw-100k,
+    csv-32m: raw-32m,
     caption: "Comparativa de algoritmos en el dataset MovieLens (100K / 32M)",
-    table(
-      columns: (auto, ..((1fr,) * 18)),
-      stroke: (x, y) => (
-        left: if calc.rem(x, 2) == 0 { white } else { black },
-        bottom: if y >= 1 { black } else { none },
-      ),
-      row-gutter: (auto, 2.2pt, auto),
-      table.header(
-        [],
-        table.cell(colspan: 2, [Normal]),
-        table.cell(colspan: 2, [BaselineOnly]),
-        table.cell(colspan: 2, [KNNBasic]),
-        table.cell(colspan: 2, [KNNMeans]),
-        table.cell(colspan: 2, [SVD]),
-        table.cell(colspan: 2, [SVD++]),
-        table.cell(colspan: 2, [NMF]),
-        table.cell(colspan: 2, [SlopeOne]),
-        table.cell(colspan: 2, [CoClustering]),
-        [],
-        ..(([100K], [32M]) * 9),
-        table.hline(),
-      ),
-      [MAE], [20],
-      [30], [40],
-      [50], [60],
-      [70], [80],
-      [90], [100],
-      [110], table.cell(stroke: red, [120]),
-      [100], [110],
-      [120], [100],
-      [110], [120],
-      [130], [RMSE],
-      [0.9642], [0.9443],
-      [0.9051], [0.8872],
-      [0.9123], [0.8905],
-      [0.9012], [0.8801],
-      [0.8924], [0.8703],
-      [0.8856], [0.8621],
-      [0.8856], [0.8621],
-      [0.8856], [0.8621],
-      [0.8856], [0.8621],
+    algorithms: (
+      "Normal Predictor",
+      "Baseline Only",
+      "KNN Basic",
+      "SVD",
+      "SVD++",
+      "SlopeOne",
+      "CoClustering",
     ),
   )
+  #block(
+    fill: luma(240),
+    inset: 10pt,
+    radius: 4pt,
+    width: 100%,
+    [
+      *Nota:* Estan marcados en #strong(text(fill: red)[rojo]) los mejores resultados en cada métrica para cada dataset.
+    ],
+  )
+]
 
+=== Análisis de Ejecuciones y Conclusiones
+
+Las conclusiones que se pueden extraer de las ejecuciones anteriores son bastante interesantes:
+
+// Lista para los puntos principales del análisis
+#list(marker: [--], indent: 0em)[
+  // Punto 1: Baselines
+  *El Normal Predictor y Baseline Only* ofrecen resultados razonables en ambos datasets, pero sus errores (MAE y RMSE) son notablemente más altos que los de técnicas colaborativas más avanzadas.
+][
+  // Punto 2: KNN
+  El primer caso de mejora lo notamos en el *rendimiento sólido de los modelos KNN* (Basic, with Means, with Z-Score y Baseline) en el dataset 100K, con errores en torno a $"MAE" approx 0.69-0.76$ y $"RMSE" approx 0.90-0.97$.
+
+  #h(1em) _Nota:_ Con el dataset 32M ningún KNN pudo ejecutarse, probablemente debido al coste en memoria, ya que estos algoritmos requieren almacenar y procesar la matriz completa de similitudes, resultando poco escalables.
+][
+  // Punto 3: Factorización de Matrices
+  Con respecto a los *métodos de factorización de matrices*:
+  - *SVD* ofrece uno de los mejores rendimientos en 100K, alcanzando $"MAE "approx 0.67$ y $"RMSE" approx 0.87$, con un tiempo de ejecución moderado ($approx 7s$).
+  - *SVD++* mejora ligeramente el error para 100K, pero su tiempo es muchísimo mayor ($approx 295s$).
+  - *NMF* también muestra buenos errores en 100K ($approx 0.70$ MAE), que son mejorados al utilizar el dataset 32M, hasta los $approx 0.65$ MAE.
+
+  // Punto destacado
+  #block(
+    fill: luma(240),
+    inset: 10pt,
+    radius: 4pt,
+    width: 100%,
+    [
+      *Destacado:* Los mejores resultados de toda la comparativa se obtienen con el algoritmo *SVD* con el dataset de 32M, reduciéndose hasta $"MAE" approx 0.61$ y $"RMSE" approx 0.81$.
+    ],
+  )
+][
+  // Punto 4: Algoritmos especializados
+  Si nos enfocamos en los *algoritmos más especializados*:
+  - *SlopeOne* obtuvo resultados decentes en 100K ($"MAE" approx 0.69, "RMSE" approx 0.90$), aunque no pudo completarse para 32M por limitaciones de hardware.
+  - *CoClustering* sí se ejecutó en ambos datasets, con mejor rendimiento en 32M ($"MAE" approx 0.73, "RMSE" approx 0.84$) con respecto al dataset más pequeño.
+]
+
+// Conclusiones finales separadas visualmente
+=== Resumen Final
+
+Podemos concluir que: #linebreak()#linebreak()
+
+1. Para *datasets pequeños (100K)*, todos los algoritmos funcionan adecuadamente y permiten observar sus diferencias de precisión, siendo los mejores el SVD y el SVD++.
+
+2. Para *datasets grandes (32M)* algunos algoritmos, especialmente los métodos basados en vecinos (KNN), no pueden ejecutarse por el alto coste en memoria.
+
+#line(length: 100%, stroke: 0.5pt + gray)
+
+#pad(x: 1em)[
+  Los modelos basados en factorización (específicamente *SVD y NMF*) y *CoClustering* ofrecen la mejor relación entre precisión y escalabilidad.
+
+  *SVD destaca como el mejor balance entre rendimiento y coste computacional.* SVD++, aunque más preciso, es más costoso computacionalmente.
 ]
 
 = Propuesta del módulo recomendador colaborativo

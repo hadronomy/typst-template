@@ -142,6 +142,12 @@
     upper(it)
   }
 
+  show heading.where(level: 3): it => {
+    set align(left)
+    set text(size: 10pt, weight: "semibold")
+    upper(it)
+  }
+
   // ---------------------------------------------------------------------------
   // Page numbering (odd/even in footer)
   // ---------------------------------------------------------------------------

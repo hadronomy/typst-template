@@ -1,0 +1,6 @@
+Métrica,Normal Predictor,Baseline Only,KNN Basic,KNN with Means,KNN with Z Score,KNN Baseline,SlopeOne,CoClustering,SVD,SVD++,NMF
+MAE,1.1453,0.6509,-,-,-,-,-,0.6802,0.6099,-,0.6581
+MAE STD,0.0005,0.0039,-,-,-,-,-,0.0007,0.0004,-,0.0008
+RMSE,1.4379,0.8559,-,-,-,-,-,0.8814,0.8070,-,0.8664
+RMSE STD,0.0007,0.0005,-,-,-,-,-,0.00167,0.0004,-,0.0015
+Time (s),-,-,-,-,-,-,-,-,-,-,-
