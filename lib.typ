@@ -51,7 +51,7 @@
     size: 10pt,
   )
 
-  show raw: set text(font: "NewComputerModern Mono")
+  show raw: set text(font: "Maple Mono NF")
   show heading: set block(above: 2em, below: 1.4em)
 
   // ---------------------------------------------------------------------------

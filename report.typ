@@ -740,6 +740,9 @@ Para iniciar con la creación del sistema de recomendación, partiremos de los d
 
   == Comparación de algoritmos
 
+  #show table.cell.where(y: 1): set text(weight: "bold")
+  #show table.cell.where(x: 0): set text(weight: "bold")
+
   #figure(
     caption: "Comparativa de algoritmos en el dataset MovieLens (100K / 32M)",
     table(
