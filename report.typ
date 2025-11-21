@@ -767,7 +767,7 @@ Para iniciar con la creación del sistema de recomendación, partiremos de los d
     radius: 4pt,
     width: 100%,
     [
-      *Nota:* Estan marcados en #strong(text(fill: red)[rojo]) los mejores resultados en cada métrica para cada dataset.
+      *Nota:* Están marcados en #strong(text(fill: red)[rojo]) los mejores resultados en cada métrica para cada dataset.
     ],
   )
 ]
