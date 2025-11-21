@@ -728,10 +728,101 @@ todas las métricas reportadas.
 
 = Dataset
 
-En este proyecto se utilizará el conjunto de datos “MovieLens” para construir el sistema de recomendación colaborativo. Este conjunto de datos proporciona información y datos relevantes (título, año, género, etc.) de películas, además de una gran cantidad de valoraciones de usuarios, basado en un sistema de calificación de 5 estrellas. Estos elementos hacen que estos Datasets sean un ejemplar idóneo para construir nuestro sistema de recomendación.
+En este proyecto se utilizará el conjunto de datos *“MovieLens”* para construir el sistema de recomendación colaborativo. Este conjunto de datos proporciona información y datos relevantes (título, año, género, etc.) de películas, además de una gran cantidad de valoraciones de usuarios, basado en un sistema de calificación de 5 estrellas. Estos elementos hacen que estos Datasets sean un ejemplar idóneo para construir nuestro sistema de recomendación.
 
 MovieLens provee distintos Datasets que son actualizados periódicamente. El tamaño, cantidad de valoraciones y rango de años tomados en cada uno varía en función de las necesidades o finalidades que quieran ser satisfechas.
-El conjunto de datos se estructura en tres ficheros csv distintos: ratings.csv, donde cada fila representa una valoración de una película realizada por un usuario, con columnas `userId,movieId,rating,timestamp`; tags.csv, donde cada fila representa una etiqueta asignada por un usuario a una película, con columnas userId,movieId,tag,timestamp; movies.csv, donde cada fila representa una película, con columnas movieId,title,genres y links.csv, donde cada fila proveé enlaces a otras fuentes de datos sobre las películas, con columnas movieId,imdbId,tmdbId.
+
+== Estructura de los datos
+
+El conjunto de datos se estructura en cuatro ficheros CSV distintos:
+
+#v(0.5em)
+
+// Tabla para organizar los ficheros y sus columnas
+#table(
+  columns: (auto, 1fr),
+  inset: 10pt,
+  align: (col, row) => (if col == 0 { right + horizon } else { left }),
+  stroke: (x, y) => (
+    bottom: if y == 0 { 1pt } else { 0.5pt + gray },
+    top: if y == 0 { 1pt } else { 0pt },
+  ),
+
+  // Cabeceras
+  [*Fichero*], [*Contenido y Columnas*],
+
+  // Fila 1: Ratings
+  [`ratings.csv`],
+  [
+    Cada fila representa una valoración de una película realizada por un usuario.\
+    #text(size: 0.9em, fill: luma(100))[`userId`, `movieId`, `rating`, `timestamp`]
+  ],
+
+  // Fila 2: Tags
+  [`tags.csv`],
+  [
+    Cada fila representa una etiqueta asignada por un usuario a una película.\
+    #text(size: 0.9em, fill: luma(100))[`userId`, `movieId`, `tag`, `timestamp`]
+  ],
+
+  // Fila 3: Movies
+  [`movies.csv`],
+  [
+    Cada fila representa una película.\
+    #text(size: 0.9em, fill: luma(100))[`movieId`, `title`, `genres`]
+  ],
+
+  // Fila 4: Links
+  [`links.csv`],
+  [
+    Cada fila provee enlaces a otras fuentes de datos sobre las películas.\
+    #text(size: 0.9em, fill: luma(100))[`movieId`, `imdbId`, `tmdbId`]
+  ],
+)
+
+=== Definición de variables
+
+Contamos con las siguientes columnas:
+
+#set terms(separator: [: ], indent: 1em, tight: true)
+
+#let defitem(name, desc) = [/ #strong(name): #desc]
+
+\
+#defitem([`userId`], [Identificador único de usuario.])
+#defitem([`movieId`], [Identificador único de película.])
+#defitem([`rating`], [Valoración en escala de cinco estrellas con incrementos de media estrella.])
+#defitem([`timestamp`], [Segundos pasados desde la medianoche UTC del 1 de enero de 1970.])
+#defitem([`tag`], [Metadatos generados por usuarios. Una sola palabra o frase simple.])
+#defitem([`title`], [Título de película.])
+#defitem([`imdbId`], [Identificador de película utilizado por imdb.com.])
+#defitem([`tmdbId`], [Identificador de película utilizado por themoviedb.org.])
+
+/ #strong(`genres`): Géneros de la película, separados por el carácter `|`. Incluye exclusivamente:
+
+#columns(4, gutter: 1em)[
+  - Action
+  - Adventure
+  - Animation
+  - Children's
+  - Comedy
+  - Crime
+  - Documentary
+  - Drama
+  - Fantasy
+  - Film-Noir
+  - Horror
+  - Musical
+  - Mystery
+  - Romance
+  - Sci-Fi
+  - Thriller
+  - War
+  - Western
+  - (no genres listed)
+]
+
+#v(1em)
 
 = Evaluación del sistema de recomendación
 
