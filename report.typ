@@ -37,14 +37,12 @@
       equal-contributor: true,
     ),
   ),
-  date: datetime.today(),
+  // date: datetime.today(),
   accent: rgb("#5c068c"),
   doc,
 )
 
 = Sistemas de recomendación
-
-#show link: underline
 
 Los sistemas de recomendación son herramientas que ayudan a las personas
 a encontrar contenido relevante dentro de un conjunto enorme de opciones
@@ -289,7 +287,9 @@ marco de trabajo óptimo y confiable para este tipo de sistemas.
 En este proyecto emplearemos los recursos que ofrece Surprise para
 realizar el módulo recomendador colaborativo.
 
-== Algoritmos de Surprise
+== Algoritmos de Surprise <algoritmos>
+
+Estos son los algoritmos implementados en Surprise, descritos en @surprise_prediction_algorithms.
 
 En las fórmulas, $r_(u i)$ denota la valoración real del usuario $u$
 sobre el ítem $i$, y $hat(r)_(u i)$ la predicción del modelo.
@@ -579,7 +579,7 @@ Si el usuario es desconocido, la predicción se reduce a $mu_i$; si el
 ítem es desconocido, a $mu_u$; y si ambos lo son, a la media global
 $mu$.
 
-== Métricas de Surprise
+== Métricas de Surprise <metricas>
 
 La librería Surprise también proporciona herramientas para evaluar la
 calidad de las predicciones. En el módulo `accuracy` se implementan
@@ -724,3 +724,85 @@ La decisión final se validará en un conjunto de pruebas mantenido al
 margen del ajuste, aplicando el mismo procedimiento Top-$N$ y
 documentando los hiperparámetros definitivos, la semilla aleatoria y
 todas las métricas reportadas.
+
+= Dataset
+
+En este proyecto se utilizará el conjunto de datos “MovieLens” para construir el sistema de recomendación colaborativo. Este conjunto de datos proporciona información y datos relevantes (título, año, género, etc.) de películas, además de una gran cantidad de valoraciones de usuarios, basado en un sistema de calificación de 5 estrellas. Estos elementos hacen que estos Datasets sean un ejemplar idóneo para construir nuestro sistema de recomendación.
+
+MovieLens provee distintos Datasets que son actualizados periódicamente. El tamaño, cantidad de valoraciones y rango de años tomados en cada uno varía en función de las necesidades o finalidades que quieran ser satisfechas.
+El conjunto de datos se estructura en tres ficheros csv distintos: ratings.csv, donde cada fila representa una valoración de una película realizada por un usuario, con columnas `userId,movieId,rating,timestamp`; tags.csv, donde cada fila representa una etiqueta asignada por un usuario a una película, con columnas userId,movieId,tag,timestamp; movies.csv, donde cada fila representa una película, con columnas movieId,title,genres y links.csv, donde cada fila proveé enlaces a otras fuentes de datos sobre las películas, con columnas movieId,imdbId,tmdbId.
+
+= Evaluación del sistema de recomendación
+
+Para iniciar con la creación del sistema de recomendación, partiremos de los dataset *MovieLens 100K* y *MovieLens 32M*. Estos conjuntos de datos serán tratados con los #link(<algoritmos>)[Algoritmos de Surprise Explicados]. Por otra parte, la calidad de los resultados obtenidos será verificada a través de las #link(<metricas>)[métricas propuestas anteriormente].
+
+#page(flipped: true)[
+
+  == Comparación de algoritmos
+
+  #figure(
+    caption: "Comparativa de algoritmos en el dataset MovieLens (100K / 32M)",
+    table(
+      columns: (auto, ..((1fr,) * 18)),
+      stroke: (x, y) => (
+        left: if calc.rem(x, 2) == 0 { white } else { black },
+        bottom: if y >= 1 { black } else { none },
+      ),
+      row-gutter: (auto, 2.2pt, auto),
+      table.header(
+        [],
+        table.cell(colspan: 2, [Normal]),
+        table.cell(colspan: 2, [BaselineOnly]),
+        table.cell(colspan: 2, [KNNBasic]),
+        table.cell(colspan: 2, [KNNMeans]),
+        table.cell(colspan: 2, [SVD]),
+        table.cell(colspan: 2, [SVD++]),
+        table.cell(colspan: 2, [NMF]),
+        table.cell(colspan: 2, [SlopeOne]),
+        table.cell(colspan: 2, [CoClustering]),
+        [],
+        ..(([100K], [32M]) * 9),
+        table.hline(),
+      ),
+      [MAE], [20],
+      [30], [40],
+      [50], [60],
+      [70], [80],
+      [90], [100],
+      [110], table.cell(stroke: red, [120]),
+      [100], [110],
+      [120], [100],
+      [110], [120],
+      [130], [RMSE],
+      [0.9642], [0.9443],
+      [0.9051], [0.8872],
+      [0.9123], [0.8905],
+      [0.9012], [0.8801],
+      [0.8924], [0.8703],
+      [0.8856], [0.8621],
+      [0.8856], [0.8621],
+      [0.8856], [0.8621],
+      [0.8856], [0.8621],
+    ),
+  )
+
+]
+
+= Propuesta del módulo recomendador colaborativo
+
+Los dos modelos con mejores resultados han sido *Baseline* y *SVD*. Para el módulo final se ha optado por un acercamiento híbrido. Se ha realizado experimentación probando distintas ponderaciones para cada modelo sobre el dataset de *100K*. Una vez obtenidos los resultados, se ha aplicado la mejor combinación al dataset *32M*.
+
+= Construcción del perfil de usuario
+
+Para agilizar la construcción del perfil de usuario se recurrirá a la gamificación del proceso. Tomando inspiración de
+The Higher Lower Game #footnote[
+  #link("https://www.higherlowergame.com/")[The Higher Lower Game].
+], se le presentarán al usuario distintas películas representativas (basándose en el ranking global). A medida que se vaya formando el perfil, se utilizará el recomendador subyacente para proponer más películas a valorar. Se propondrán películas de distintos cuartiles para evitar sesgos durante la creación. Con esto se irá refinando el perfil del usuario hasta obtener uno satisfactorio. En ese momento ya se podrán realizar las recomendaciones definitivas.
+
+No se pedirá al usuario que cree una cuenta, los datos del perfil se guardarán localmente en el navegador.
+
+El usuario podrá utilizar la aplicación como recomendador de películas. Asimismo se brindará información sobre el perfil generado, permitiendo conocer distintos datos sobre las preferencias a un nivel cuantitativo.
+
+#page[
+  #bibliography(title: "Bibliografia", "bibliography.bib")
+]
