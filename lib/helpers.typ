@@ -95,6 +95,7 @@
       row-gutter: (auto, 2.2pt, auto),
       stroke: (x, y) => {
         let s = (top: 0.5pt + black, bottom: 0.5pt + black)
+        if x == 0 { s.insert("left", 0.5pt + black) }
         if x > 0 and calc.rem(x, 2) == 0 { s.insert("right", 0.5pt + black) }
         if y == 0 { s.bottom = 0.5pt + black }
         if y == 1 { s.bottom = 1pt + black }
